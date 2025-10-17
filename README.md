@@ -36,6 +36,71 @@ The system integrates perception, estimation, and learning modules within a unif
 
 ---
 
+## Mathematical Framework
+
+The traversability estimation framework builds upon the physical relationship between commanded and measured motion to infer surface interaction.  
+Let \( v_c \) denote the commanded velocity and \( v_m \) the estimated velocity (from odometry or EKF).  
+The **traversability coefficient** is defined as:
+
+\[
+\mu = \frac{v_m}{v_c}
+\]
+
+Under ideal traction, \( \mu \approx 1 \); lower values indicate slippage or reduced mobility.  
+This coefficient serves as a **self-supervisory signal**, enabling learning without manual labels.
+
+---
+
+### 1. State Estimation (EKF)
+
+An Extended Kalman Filter fuses odometry and IMU data to estimate the robot’s state:
+
+\[
+\mathbf{x} = [x, y, \theta, v, \omega, b_{a_x}, b_{a_y}, b_\omega]^T
+\]
+
+The EKF prediction and update follow:
+
+\[
+\mathbf{x}_{k|k-1} = f(\mathbf{x}_{k-1}, \mathbf{u}_{k-1}) , \quad
+\mathbf{P}_{k|k-1} = \mathbf{F}\mathbf{P}_{k-1}\mathbf{F}^T + \mathbf{Q}
+\]
+
+\[
+\mathbf{K} = \mathbf{P}\mathbf{H}^T(\mathbf{H}\mathbf{P}\mathbf{H}^T+\mathbf{R})^{-1}, \quad
+\mathbf{x}_{k|k} = \mathbf{x}_{k|k-1} + \mathbf{K}(\mathbf{z}_k - h(\mathbf{x}_{k|k-1}))
+\]
+
+This provides smoothed velocity estimates \( v \) and \( \omega \), robust to IMU noise or wheel slip.
+
+---
+
+### 2. Geometric Projection
+
+Future odometry poses are reprojected into the image plane using known camera intrinsics and extrinsics:
+
+\[
+\begin{bmatrix} u \\ v \\ 1 \end{bmatrix}
+= \frac{1}{Z_{cam}} \, \mathbf{K} [\mathbf{R}|\mathbf{t}]
+\begin{bmatrix} X_{base} \\ Y_{base} \\ Z_{base} \\ 1 \end{bmatrix}
+\]
+
+This maps multi-timestep trajectories to their corresponding RGB-D pixels, creating **path masks** for self-supervision.
+
+---
+
+### 3. Self-Supervised Learning
+
+A ResNet–Depth–UNet model predicts per-pixel traversability \( \hat{\mu}(u,v) \) from RGB-D input, optimized by:
+
+\[
+\mathcal{L} = \| \hat{\mu} - \mu_{EKF} \|_2^2
+\]
+
+The robot thus learns traversability directly from its own motion feedback—bridging **state estimation**, **geometry**, and **learning** for adaptive navigation.
+
+---
+
 ## Repository Structure
 
 ```
