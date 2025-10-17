@@ -154,7 +154,7 @@ Per-image future trajectory windows for projection.
 - `x_window`, `y_window`, `z_window` *(list[float])* — future positions (length N)
 - `theta_window` *(list[float])* — future yaw angles (length N)
 
-### `Sample Data/final training_data csv.csv`
+### `Sample Data/final_training_data.csv`
 Learning-ready table (one row per example).
 
 - `rgb_img`, `depth_img` — image paths
