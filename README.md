@@ -217,4 +217,5 @@ This repository documents a complete, training-ready pipeline for self-supervise
 ## Author
 
 Muhammad Musab Ali Chaudhry — Lahore University of Management Sciences (LUMS)
+
 Contact: 25100190@lums.edu.pk
